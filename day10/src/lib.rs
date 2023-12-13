@@ -9,7 +9,7 @@ struct Pipe {
 
 impl Pipe {
     fn new(c: char, i: usize, width: usize, height: usize) -> Self {
-        let (x, y) = (i % width, i / height);
+        let (x, y) = (i % width, i / width);
         let (mut a, mut b) = match c {
             '|' => (i.checked_sub(width), Some(i + width)),
             '-' => (i.checked_sub(1), Some(i + 1)),
@@ -94,7 +94,7 @@ pub fn part_one(input: &str) -> i32 {
         map[start_index] = Pipe::new(t, start_index, width, height);
 
         if let Some(l) = find_loop(&map, start_index) {
-            /*for (i, t) in map.iter().enumerate() {
+            for (i, t) in map.iter().enumerate() {
                 if l.contains(t) {
                     print!("{}", t.c)
                 } else {
@@ -103,12 +103,30 @@ pub fn part_one(input: &str) -> i32 {
                 if (i + 1) % width == 0 {
                     println!();
                 }
-            }*/
+            }
             return (l.len() / 2) as i32;
         }
     }
 
     0
+}
+
+/// Combination of Pick's theorem (A = interior + points/2 - 1)
+/// and the Shoelace formula to calculate A
+fn num_enclosed(points: &Vec<(i32, i32)>) -> i32 {
+    points
+        .iter()
+        .enumerate()
+        .map(|(i, &p)| det(p, points[(i + 1) % points.len()]))
+        .sum::<i32>()
+        .abs()
+        / 2
+        - (points.len() / 2) as i32
+        + 1
+}
+
+fn det(a: (i32, i32), b: (i32, i32)) -> i32 {
+    a.0 * b.1 - a.1 * b.0
 }
 
 pub fn part_two(input: &str) -> i32 {
@@ -133,6 +151,8 @@ pub fn part_two(input: &str) -> i32 {
                 .iter()
                 .map(|p| (p.pos.0 as i32, p.pos.1 as i32))
                 .collect::<Vec<_>>();
+
+            return num_enclosed(&l);
         }
     }
 
